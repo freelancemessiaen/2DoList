@@ -8,7 +8,7 @@ import { useState } from "react";
 export default function App() {
   const [todoList, setTodoList] = useState([
     { id: 1, title: "Sortir le chien", isCompleted: true },
-    { id: 2, title: "Allez chez le gagariste", isCompleted: false },
+    { id: 2, title: "Allez chez le garagiste", isCompleted: false },
     { id: 3, title: "Faire les courses", isCompleted: true },
     { id: 4, title: "Appeler le vétérinaire", isCompleted: true },
     { id: 5, title: "Donnez à manger au chats", isCompleted: true },
@@ -20,9 +20,22 @@ export default function App() {
   function renderTodoList() {
     return todoList.map((todo) => (
       <View style={s.cardItem} key={todo.id}>
-        <CardTodo todo={todo} />
+        <CardTodo onPress={updateTodo} todo={todo} />
       </View>
     ));
+  }
+
+  function updateTodo(todo) {
+    const updatedTodo = {
+      ...todo,
+      isCompleted: !todo.isCompleted,
+    };
+    const indexToUpdate = todoList.findIndex(
+      (todo) => todo.id === updatedTodo.id
+    );
+    const updatedTodoList = [...todoList];
+    updatedTodoList[indexToUpdate] = updatedTodo;
+    setTodoList(updatedTodoList);
   }
 
   return (
