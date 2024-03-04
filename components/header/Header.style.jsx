@@ -4,10 +4,10 @@ const s = StyleSheet.create({
 
 img: {
     width:150,
-    alignSelf: 'center'
+    alignSelf: 'center',
 },
 subtitle: {
-    marginTop: -20,
+    marginTop: -30,
     fontSize: 20,
     color: '#ABABAB'
 }

@@ -5,7 +5,7 @@ export function Header () {
     return (
     <>
         <Image style={s.img} source={headerLogo} resizeMode='contain'/>
-        <Text style={s.subtitle}>Vous pouvez ajouter une tâcha à faire !</Text>
+        <Text style={s.subtitle}>Vous pouvez ajouter une tâche à faire !</Text>
     </>  
     )
 }
