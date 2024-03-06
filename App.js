@@ -1,11 +1,14 @@
-import { ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { s } from "./App.style";
 import { CardTodo } from "./components/CardTodo/CardTodo";
 import { Header } from "./components/header/Header";
+import { TabBottomMenu } from "./components/TabBottommenu/TabBottomMenu";
 import { useState } from "react";
 
 export default function App() {
+  const [selectedTabName, setSelectedTableName] = useState("all");
+
   const [todoList, setTodoList] = useState([
     { id: 1, title: "Sortir le chien", isCompleted: true },
     { id: 2, title: "Allez chez le garagiste", isCompleted: false },
@@ -17,10 +20,26 @@ export default function App() {
     { id: 8, title: "Regarder un film", isCompleted: true },
   ]);
 
+  function deleteTodo(todoToDelete) {
+    Alert.alert("suppression", "Supprimer cette tâche ?", [
+      {
+        text: "Supprimer",
+        style: "destructive",
+        onPress: () => {
+          setTodoList(todoList.filter((todo) => todo.id !== todoToDelete.id));
+        },
+      },
+      {
+        text: "Annuler",
+        style: "cancel",
+      },
+    ]);
+  }
+
   function renderTodoList() {
-    return todoList.map((todo) => (
+    return getFilteredList().map((todo) => (
       <View style={s.cardItem} key={todo.id}>
-        <CardTodo onPress={updateTodo} todo={todo} />
+        <CardTodo onLongPress={deleteTodo} onPress={updateTodo} todo={todo} />
       </View>
     ));
   }
@@ -38,6 +57,17 @@ export default function App() {
     setTodoList(updatedTodoList);
   }
 
+  function getFilteredList() {
+    switch (selectedTabName) {
+      case "all":
+        return todoList;
+      case "inProgress":
+        return todoList.filter((todo) => !todo.isCompleted);
+      case "done":
+        return todoList.filter((todo) => todo.isCompleted);
+    }
+  }
+
   return (
     <>
       <SafeAreaProvider>
@@ -51,7 +81,11 @@ export default function App() {
         </SafeAreaView>
       </SafeAreaProvider>
       <View style={s.footer}>
-        <Text>Footer</Text>
+        <TabBottomMenu
+          todoList={todoList}
+          onPress={setSelectedTableName}
+          selectedTabName={selectedTabName}
+        />
       </View>
     </>
   );
