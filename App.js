@@ -4,21 +4,35 @@ import { s } from "./App.style";
 import { CardTodo } from "./components/CardTodo/CardTodo";
 import { Header } from "./components/header/Header";
 import { TabBottomMenu } from "./components/TabBottommenu/TabBottomMenu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ButtonAdd } from "./components/ButtonAdd/ButtonAdd";
+import Dialog from "react-native-dialog";
+import uuid from "react-native-uuid";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+let isFirstRender = true;
+let isLoadUpdate = false;
 export default function App() {
   const [selectedTabName, setSelectedTableName] = useState("all");
+  const [isAddDialogVisible, setIsAddDialogVisible] = useState(false);
+  const [inputValue, setInputvalue] = useState("");
+  const [todoList, setTodoList] = useState([]);
 
-  const [todoList, setTodoList] = useState([
-    { id: 1, title: "Sortir le chien", isCompleted: true },
-    { id: 2, title: "Allez chez le garagiste", isCompleted: false },
-    { id: 3, title: "Faire les courses", isCompleted: true },
-    { id: 4, title: "Appeler le vétérinaire", isCompleted: true },
-    { id: 5, title: "Donnez à manger au chats", isCompleted: true },
-    { id: 6, title: "Faire des markrout", isCompleted: false },
-    { id: 7, title: "Boire de l'eau", isCompleted: true },
-    { id: 8, title: "Regarder un film", isCompleted: true },
-  ]);
+  useEffect(() => {
+    loadTodoList();
+  }, []);
+
+  useEffect(() => {
+    if (isLoadUpdate) {
+      isLoadUpdate = false;
+    } else {
+      if (!isFirstRender) {
+        saveTodoList();
+      } else {
+        isFirstRender = false;
+      }
+    }
+  }, [todoList]);
 
   function deleteTodo(todoToDelete) {
     Alert.alert("suppression", "Supprimer cette tâche ?", [
@@ -68,6 +82,41 @@ export default function App() {
     }
   }
 
+  function showAddDialog() {
+    setIsAddDialogVisible(true);
+  }
+
+  function addTodo() {
+    const newTodo = {
+      id: uuid.v4(),
+      title: inputValue,
+      isCompleted: false,
+    };
+    setTodoList([...todoList, newTodo]);
+    setIsAddDialogVisible(false);
+  }
+
+  async function saveTodoList() {
+    try {
+      await AsyncStorage.setItem("@todolist", JSON.stringify(todoList));
+    } catch (error) {
+      alert("Erreur " + error);
+    }
+  }
+
+  async function loadTodoList() {
+    try {
+      const stringifiedTodoList = await AsyncStorage.getItem("@todolist");
+      if (stringifiedTodoList !== null) {
+        const parsedTodoList = JSON.parse(stringifiedTodoList);
+        isLoadUpdate = true;
+        setTodoList(parsedTodoList);
+      }
+    } catch (error) {
+      alert("Erreur " + error);
+    }
+  }
+
   return (
     <>
       <SafeAreaProvider>
@@ -78,6 +127,7 @@ export default function App() {
           <View style={s.body}>
             <ScrollView>{renderTodoList()}</ScrollView>
           </View>
+          <ButtonAdd onPress={showAddDialog} />
         </SafeAreaView>
       </SafeAreaProvider>
       <View style={s.footer}>
@@ -87,6 +137,21 @@ export default function App() {
           selectedTabName={selectedTabName}
         />
       </View>
+      <Dialog.Container
+        visible={isAddDialogVisible}
+        onBackdropPress={() => setIsAddDialogVisible(false)}
+      >
+        <Dialog.Title>Créer une tâche</Dialog.Title>
+        <Dialog.Description>
+          Choisi un nom pour la nouvelle tâche
+        </Dialog.Description>
+        <Dialog.Input onChangeText={setInputvalue} />
+        <Dialog.Button
+          disabled={inputValue.trim().length === 0}
+          label="Créer"
+          onPress={addTodo}
+        />
+      </Dialog.Container>
     </>
   );
 }
